@@ -18,20 +18,26 @@ Mỗi chặng có: mục tiêu, phạm vi file, tiêu chí chấp nhận, rủi 
 
 **Tiêu chí chấp nhận:**
 
-- [ ] `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` chạy thành công.
-- [ ] Avatar window: trong suốt, không viền, always-on-top, không hiện trên taskbar, kéo thả được.
-- [ ] Avatar có nút mở chat và nút ẩn; có cách hiện lại (tray icon + phím tắt toàn cục).
-- [ ] Chat window riêng, mở/đóng/focus từ avatar.
-- [ ] `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`, `webSecurity: true`.
-- [ ] Preload chỉ expose API tối thiểu, có kiểu; không expose `ipcRenderer` thô.
-- [ ] Main process kiểm tra sender của mọi IPC (đúng window, đúng origin).
-- [ ] Payload IPC được validate (kiểu, kích thước).
-- [ ] CSP chặt cho renderer; chặn `window.open`, điều hướng ngoài app, `webview`, permission request mặc định.
-- [ ] Single-instance lock.
-- [ ] Unit test cho validation, sender check, kéo thả (tính toán vị trí/clamp màn hình).
-- [ ] README, `docs/ARCHITECTURE.md`, `docs/SECURITY.md`.
+- [x] `npm run lint`, `npm run typecheck`, `npm test` (69 test), `npm run build` chạy thành công (Windows 11, Node 24.18).
+- [~] Avatar window: trong suốt, không viền, always-on-top, không hiện trên taskbar, kéo thả được.
+  Smoke test xác nhận always-on-top, kích thước, không resize; render nhân vật đã chụp ảnh kiểm tra (offscreen). Tính toán kéo thả có unit test. **Cần kiểm tra thủ công** trên desktop tương tác: độ trong suốt thực tế, ẩn khỏi taskbar, cảm giác kéo.
+- [~] Avatar có nút mở chat và nút ẩn; có cách hiện lại (tray icon + phím tắt toàn cục).
+  Nút ẩn qua IPC đã được smoke test; tray và `Ctrl+Alt+A` chưa có kiểm thử tự động.
+- [x] Chat window riêng, mở/đóng/focus từ avatar (smoke test mở + probe; render đã chụp ảnh).
+- [x] `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`, `webSecurity: true`.
+- [x] Preload chỉ expose API tối thiểu, có kiểu; không expose `ipcRenderer` thô.
+- [x] Main process kiểm tra sender của mọi IPC (đúng window, main frame, đúng origin, đúng vai trò).
+- [x] Payload IPC được validate (kiểu, số key, giới hạn, NFC).
+- [x] CSP chặt cho renderer; chặn `window.open`, điều hướng ngoài app, `webview`.
+- [~] Permission request mặc định bị từ chối — đã cài, chưa có kiểm thử tự động.
+- [~] Single-instance lock — đã cài, chưa kiểm thử tự động.
+- [x] Unit test cho validation, sender check, trusted origin, CSP, kéo thả, i18n.
+- [x] Smoke test Electron thật: `npm run test:smoke` → 25/25 PASS.
+- [x] README, `docs/ARCHITECTURE.md`, `docs/SECURITY.md`.
 
-**Rủi ro:** cửa sổ trong suốt trên một số GPU/driver Windows có thể hiện nền đen → có tuỳ chọn tắt hardware acceleration (ghi trong troubleshooting). Chưa kiểm chứng installer ở chặng này.
+**Rủi ro:** cửa sổ trong suốt trên một số GPU/driver Windows có thể hiện nền đen → tuỳ chọn tắt hardware acceleration sẽ thêm ở chặng 2. Chưa build/kiểm chứng installer ở chặng này.
+
+**Ngoài kế hoạch ban đầu, đã làm sớm:** i18n giao diện vi-VN/en-US tối thiểu (theo locale hệ điều hành, fallback en-US) để không có chuỗi giao diện viết cứng trong component.
 
 ---
 
