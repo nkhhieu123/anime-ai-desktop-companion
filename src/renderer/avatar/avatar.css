@@ -1,0 +1,139 @@
+html,
+body.avatar-body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  /* The window is transparent; nothing here may paint a background. */
+  background: transparent;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  user-select: none;
+}
+
+#root,
+.avatar-root {
+  height: 100%;
+}
+
+.avatar-root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.avatar-toolbar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 2;
+}
+
+.avatar-root:hover .avatar-toolbar,
+.avatar-toolbar:focus-within {
+  opacity: 1;
+  transform: none;
+}
+
+.avatar-button {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: rgba(40, 32, 60, 0.82);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.avatar-button:hover {
+  background: #e0679a;
+}
+
+.avatar-button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.avatar-stage {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+
+.avatar-stage.is-dragging {
+  cursor: grabbing;
+}
+
+.character {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.character-body {
+  transform-origin: 100px 260px;
+  animation: breathe 3.6s ease-in-out infinite;
+}
+
+.hair-sway {
+  transform-origin: 100px 90px;
+  animation: sway 5s ease-in-out infinite;
+}
+
+.eyes > g {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blink 4.8s infinite;
+}
+
+.is-dragging .character-body {
+  animation-play-state: paused;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.01, 0.995);
+  }
+}
+
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(1.5deg);
+  }
+}
+
+@keyframes blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .character-body,
+  .hair-sway,
+  .eyes > g {
+    animation: none;
+  }
+}
