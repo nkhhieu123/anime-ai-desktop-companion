@@ -61,7 +61,7 @@ App chỉ kết nối tới địa chỉ trên chính máy này (`127.0.0.1`, `l
 
 ### Dữ liệu được lưu ở đâu
 
-Trong thư mục dữ liệu của app (Windows: `%APPDATA%\\anime-ai-desktop-companion`):
+Trong thư mục dữ liệu của app (Windows: `%APPDATA%\anime-ai-desktop-companion`):
 
 | File | Nội dung | Khi nào có |
 | --- | --- | --- |
