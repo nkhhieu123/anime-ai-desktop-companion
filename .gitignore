@@ -12,6 +12,4 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
-.claude/
-CLAUDE.md
 *.tsbuildinfo
