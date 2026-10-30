@@ -17,12 +17,12 @@
 | Kiểm tra sender IPC | Mỗi tin nhắn: đúng cửa sổ của app, main frame, URL trusted, vai trò được phép dùng kênh | `main/security/sender.ts`, `main/ipc/router.ts` | unit test + smoke test (chat không ẩn được avatar, avatar không gọi được `chat:send`) |
 | Validate payload | Kiểu, số key chính xác, giới hạn toạ độ, độ dài tin nhắn ≤ 4000, chuẩn hoá Unicode NFC | `shared/validation.ts` | unit test |
 | CSP | Production: `default-src 'none'; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'`, không `unsafe-inline`/`unsafe-eval`, không kết nối mạng ngoài | `shared/csp.ts`, chèn lúc build | unit test + smoke test |
-| Điều hướng / popup | `setWindowOpenHandler` → deny; `will-navigate`/`will-redirect` tới URL không trusted → chặn; `will-attach-webview` → chặn | `main/security/harden.ts` | smoke test (`window.open`) |
-| Quyền trình duyệt | Mọi permission request/check/device đều bị từ chối (mic sẽ được mở có điều kiện ở chặng 5) | `harden.ts` | — (kiểm tra thủ công) |
+| Điều hướng / popup | `setWindowOpenHandler` → deny; `will-navigate`/`will-redirect` tới URL không trusted → chặn; `will-attach-webview` → chặn | `main/security/harden.ts` | smoke test (`window.open`, điều hướng) |
+| Quyền trình duyệt | Mọi permission request/check/device đều bị từ chối (mic sẽ được mở có điều kiện ở chặng 5) | `harden.ts` | smoke test (notification, microphone) |
 | Trusted origin | Dev: đúng origin của Vite dev server. Prod: file nằm trong `out/renderer` (chống path traversal, không phân biệt hoa thường trên Windows) | `main/security/trusted-origin.ts` | unit test |
 | DevTools | Tắt trong bản đóng gói | `web-preferences.ts` | unit test |
 | Log | URL được bỏ query/hash trước khi ghi; nội dung chat không được ghi (chỉ độ dài) | `harden.ts`, `ipc/handlers.ts` | — |
-| Single instance | `requestSingleInstanceLock` | `main/index.ts` | kiểm tra thủ công |
+| Single instance | `requestSingleInstanceLock` | `main/index.ts` | smoke test (lần chạy thứ hai tự thoát) |
 
 ## Ngoài phạm vi chặng 1 / rủi ro đã biết
 

@@ -1,4 +1,5 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, type Tray } from 'electron';
+import { spawn } from 'node:child_process';
 import type { WindowManager } from './windows/window-manager';
 import { log } from './log';
 
@@ -7,6 +8,11 @@ import { log } from './log';
  * the security boundary from inside each renderer, then exits with 0/1.
  * Run via `npm run test:smoke`.
  */
+
+export interface SmokeShell {
+  tray: Tray;
+  shortcutRegistered: boolean;
+}
 
 interface Check {
   name: string;
@@ -39,7 +45,23 @@ async function probe(win: BrowserWindow, label: string, checks: Check[]): Promis
   );
 }
 
-export async function runSmokeTest(windows: WindowManager): Promise<void> {
+/** Resolves with the exit code, or null if it had to be killed because it kept running. */
+function launchSecondInstance(): Promise<number | null> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [app.getAppPath()], { stdio: 'ignore' });
+    const killer = setTimeout(() => child.kill(), 10_000);
+    child.once('error', (error) => {
+      clearTimeout(killer);
+      reject(error);
+    });
+    child.once('exit', (code) => {
+      clearTimeout(killer);
+      resolve(code);
+    });
+  });
+}
+
+export async function runSmokeTest(windows: WindowManager, shell: SmokeShell): Promise<void> {
   const timer = setTimeout(() => {
     log.error('smoke test timed out');
     app.exit(1);
@@ -94,6 +116,44 @@ export async function runSmokeTest(windows: WindowManager): Promise<void> {
     await new Promise((r) => setTimeout(r, 300));
     const after = BrowserWindow.getAllWindows().length;
     checks.push({ name: 'security: window.open blocked', ok: before === after });
+
+    // ...nor leave the app's own pages.
+    const chatUrl = chat.webContents.getURL();
+    await chat.webContents.executeJavaScript(`window.location.href = 'https://example.com'; true`);
+    await new Promise((r) => setTimeout(r, 500));
+    checks.push({ name: 'security: navigation blocked', ok: chat.webContents.getURL() === chatUrl });
+
+    // Permission handlers deny everything for now.
+    const notification = await chat.webContents.executeJavaScript(
+      `Notification.requestPermission()`,
+    );
+    checks.push({
+      name: 'security: notification permission denied',
+      ok: notification === 'denied',
+      detail: String(notification),
+    });
+    const microphone = await chat.webContents.executeJavaScript(
+      `navigator.mediaDevices.getUserMedia({ audio: true }).then(() => 'granted', (e) => e.name)`,
+    );
+    checks.push({
+      name: 'security: microphone not granted',
+      ok: microphone !== 'granted',
+      detail: String(microphone),
+    });
+
+    checks.push(
+      { name: 'shell: tray created', ok: !shell.tray.isDestroyed() },
+      { name: 'shell: global shortcut registered', ok: shell.shortcutRegistered },
+    );
+
+    // A second launch must exit on its own and bring the hidden avatar back.
+    windows.hideAvatar();
+    const secondExit = await launchSecondInstance();
+    await new Promise((r) => setTimeout(r, 300));
+    checks.push(
+      { name: 'single instance: second launch exits', ok: secondExit === 0, detail: String(secondExit) },
+      { name: 'single instance: avatar shown again', ok: avatar.isVisible() },
+    );
   } catch (error) {
     checks.push({ name: 'smoke test crashed', ok: false, detail: String(error) });
   }

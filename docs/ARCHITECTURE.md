@@ -74,4 +74,4 @@ Không dùng `-webkit-app-region: drag` (không kẹp được vị trí, không
 ## Kiểm thử
 
 - `tests/*.test.ts` (Vitest, môi trường Node): validate, phân quyền sender, trusted origin, webPreferences, CSP, kéo thả, i18n, icon khay.
-- `npm run test:smoke`: chạy Electron thật với `--smoke-test` (`src/main/smoke-test.ts`), mở cả hai cửa sổ, kiểm tra từ bên trong renderer rằng không có `require`/`process`/`module`, API bị đóng băng, CSP có mặt, IPC từ chối đúng vai trò, `window.open` bị chặn.
+- `npm run test:smoke`: chạy Electron thật với `--smoke-test` (`src/main/smoke-test.ts`), mở cả hai cửa sổ, kiểm tra từ bên trong renderer rằng không có `require`/`process`/`module`, API bị đóng băng, CSP có mặt, IPC từ chối đúng vai trò, `window.open` và điều hướng bị chặn, quyền bị từ chối, tray và phím tắt được tạo, lần chạy thứ hai tự thoát và hiện lại avatar. Cần đóng app đang chạy trước khi chạy lệnh này (nếu không smoke test sẽ báo lỗi).

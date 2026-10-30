@@ -56,7 +56,7 @@ Khi chạy, nhân vật xuất hiện ở góc dưới bên phải màn hình ch
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript cho main/preload và renderer |
 | `npm test` | Unit test (Vitest) |
-| `npm run test:smoke` | Build rồi khởi động Electron thật, kiểm tra cửa sổ + ranh giới bảo mật, tự thoát với mã 0/1 |
+| `npm run test:smoke` | Build rồi khởi động Electron thật, kiểm tra cửa sổ + ranh giới bảo mật, tự thoát với mã 0/1. Hãy đóng app đang chạy trước |
 | `npm run check` | lint + typecheck + test + build |
 | `npm run dist:win` | Build installer NSIS (**chưa được cấu hình/kiểm tra — chặng 8**) |
 

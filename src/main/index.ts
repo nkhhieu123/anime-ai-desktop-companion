@@ -32,8 +32,14 @@ async function loadPage(window: BrowserWindow, page: WindowRole): Promise<void> 
 // Windows notifications and taskbar grouping.
 app.setAppUserModelId('com.animecompanion.desktop');
 
-if (!isSmokeTest && !app.requestSingleInstanceLock()) {
-  app.quit();
+if (!app.requestSingleInstanceLock()) {
+  // A smoke test that can't take the lock tested nothing; it must not look like a pass.
+  if (isSmokeTest) {
+    console.error('Smoke test: another instance is running, close it first.');
+    app.exit(1);
+  } else {
+    app.quit();
+  }
 } else {
   hardenApp(isTrustedUrl);
 
@@ -63,13 +69,16 @@ if (!isSmokeTest && !app.requestSingleInstanceLock()) {
   app
     .whenReady()
     .then(async () => {
-      if (isSmokeTest) {
-        await runSmokeTest(windows);
-        return;
-      }
       tray = createTray(windows);
-      if (!globalShortcut.register(TOGGLE_SHORTCUT, () => windows.toggleAvatar())) {
+      const shortcutRegistered = globalShortcut.register(TOGGLE_SHORTCUT, () =>
+        windows.toggleAvatar(),
+      );
+      if (!shortcutRegistered) {
         log.warn('global shortcut unavailable', { accelerator: TOGGLE_SHORTCUT });
+      }
+      if (isSmokeTest) {
+        await runSmokeTest(windows, { tray, shortcutRegistered });
+        return;
       }
       await windows.createAvatar();
       log.info('companion started', { version: app.getVersion(), dev: !!devServerUrl });
