@@ -41,26 +41,25 @@ Mỗi chặng có: mục tiêu, phạm vi file, tiêu chí chấp nhận, rủi 
 
 ---
 
-## Chặng 2 — Settings, database, logging, i18n giao diện
+## Chặng 2 — AI Core chạy cục bộ
 
-- [ ] Module `settings`: schema có kiểu + validate, giá trị mặc định an toàn, lưu file trong `userData`.
-- [ ] Module `database`: SQLite (better-sqlite3 hoặc node:sqlite), `schema_version`, migration có test.
+- [ ] Interface `LLMProvider` (health check, list models, stream chat, cancel).
+- [ ] Adapter Ollama: chỉ endpoint loopback, cấu hình model, timeout, streaming, cancellation.
+- [ ] Giới hạn độ dài đầu vào và lịch sử hội thoại.
+- [ ] Quản lý hội thoại; chỉ lưu cục bộ khi người dùng bật, tắt thì xoá dữ liệu đã lưu.
+- [ ] System prompt tách khỏi nội dung người dùng, theo ngôn ngữ; output của model chỉ là văn bản hiển thị.
+- [ ] Màn hình chọn model, kiểm tra kết nối, thông báo model chưa tải và lỗi Ollama.
+- [ ] Unit/integration test với mock: provider, lỗi kết nối, timeout, câu trả lời rỗng, streaming.
+- [ ] Test cần Ollama thật được tách riêng và ghi rõ.
+
+## Chặng 3 — Settings, database, logging, language manager
+
+- [ ] Module `database`: SQLite, `schema_version`, migration có test; chuyển settings và hội thoại từ file JSON sang.
 - [ ] Module `logging`: log xoay vòng, che dữ liệu nhạy cảm (redaction), mức log cấu hình được.
-- [ ] i18n giao diện vi-VN, en-US từ file dịch; fallback khi thiếu key/file; định dạng ngày/số theo locale.
-- [ ] Cửa sổ Settings (ngôn ngữ UI, ngôn ngữ hội thoại, vị trí avatar, kích thước).
-- [ ] Lưu/khôi phục vị trí avatar.
+- [ ] Chọn ngôn ngữ giao diện trong app; fallback khi thiếu key/file; định dạng ngày/số theo locale.
+- [ ] Language manager: phát hiện ngôn ngữ đầu vào (vi/en/trộn).
+- [ ] Tuỳ chọn tắt tăng tốc phần cứng; lưu/khôi phục vị trí avatar và kích thước.
 - [ ] Test: migration, validate settings, fallback i18n, Unicode tiếng Việt có dấu.
-
-## Chặng 3 — AI core, Ollama provider, language manager
-
-- [ ] Interface `LlmProvider` (stream, cancel, list models, health check).
-- [ ] Adapter Ollama qua `http://127.0.0.1:11434` (chỉ loopback), timeout, cancel, retry hợp lý.
-- [ ] Chat streaming từ main → chat window qua IPC; huỷ phản hồi.
-- [ ] Lưu lịch sử hội thoại (SQLite) với giới hạn retention.
-- [ ] Language manager: phát hiện ngôn ngữ đầu vào, chế độ "trả lời theo ngôn ngữ người dùng", chọn ngôn ngữ phản hồi cố định.
-- [ ] System prompt theo ngôn ngữ, cấu hình được.
-- [ ] Trạng thái rõ ràng khi Ollama chưa chạy/chưa có model.
-- [ ] Test: provider với mock server, phát hiện ngôn ngữ (vi/en/trộn), cancel.
 
 ## Chặng 4 — Voice output (TTS)
 
