@@ -11,6 +11,7 @@ export interface WindowManagerOptions {
   preloadPath: string;
   allowDevTools: boolean;
   loadPage(window: BrowserWindow, page: WindowRole): Promise<void>;
+  onChatClosed(): void;
 }
 
 interface DragState {
@@ -132,6 +133,7 @@ export class WindowManager {
     });
     win.on('closed', () => {
       this.chat = null;
+      this.options.onChatClosed();
     });
 
     this.chat = win;

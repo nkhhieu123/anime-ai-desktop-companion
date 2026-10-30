@@ -1,8 +1,14 @@
 import { app, globalShortcut, type BrowserWindow, type Tray } from 'electron';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { CHAT_EVENT_CHANNEL } from '@shared/ipc';
 import type { WindowRole } from '@shared/ipc';
 import { hardenApp } from './security/harden';
 import { isTrustedRendererUrl } from './security/trusted-origin';
+import { AiService } from './ai/ai-service';
+import { OllamaProvider } from './ai/ollama-provider';
+import { createConversationStore, createSettingsStore } from './ai/stores';
 import { WindowManager } from './windows/window-manager';
 import { IpcRouter } from './ipc/router';
 import { registerIpcHandlers } from './ipc/handlers';
@@ -47,11 +53,12 @@ if (!app.requestSingleInstanceLock()) {
     preloadPath,
     allowDevTools: !app.isPackaged,
     loadPage,
+    onChatClosed: () => ai?.cancelAll(),
   });
   const router = new IpcRouter({ roleOf: (wc) => windows.roleOf(wc), isTrustedUrl });
-  registerIpcHandlers(router, windows);
 
   let tray: Tray | null = null;
+  let ai: AiService | null = null;
 
   app.on('second-instance', () => windows.showAvatar());
 
@@ -62,6 +69,7 @@ if (!app.requestSingleInstanceLock()) {
 
   app.on('will-quit', () => {
     globalShortcut.unregisterAll();
+    ai?.cancelAll();
     router.dispose();
     tray?.destroy();
   });
@@ -69,6 +77,23 @@ if (!app.requestSingleInstanceLock()) {
   app
     .whenReady()
     .then(async () => {
+      // The smoke test must never read or change the user's real data.
+      const dataDir = isSmokeTest
+        ? mkdtempSync(join(tmpdir(), 'companion-smoke-'))
+        : app.getPath('userData');
+      ai = new AiService({
+        settingsStore: createSettingsStore(dataDir),
+        conversationStore: createConversationStore(dataDir),
+        createProvider: (endpoint) => new OllamaProvider(endpoint),
+        uiLocale: app.getLocale(),
+        emit: (event) => {
+          const chat = windows.chatWindow;
+          if (chat && !chat.isDestroyed()) chat.webContents.send(CHAT_EVENT_CHANNEL, event);
+        },
+      });
+      await ai.init();
+      registerIpcHandlers(router, windows, ai);
+
       tray = createTray(windows);
       const shortcutRegistered = globalShortcut.register(TOGGLE_SHORTCUT, () =>
         windows.toggleAvatar(),
@@ -77,7 +102,7 @@ if (!app.requestSingleInstanceLock()) {
         log.warn('global shortcut unavailable', { accelerator: TOGGLE_SHORTCUT });
       }
       if (isSmokeTest) {
-        await runSmokeTest(windows, { tray, shortcutRegistered });
+        await runSmokeTest(windows, { tray, shortcutRegistered, dataDir });
         return;
       }
       await windows.createAvatar();

@@ -27,6 +27,12 @@ export function parseChatRequest(value: unknown): ChatRequest | null {
   return { text };
 }
 
+const REQUEST_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+export function parseRequestId(value: unknown): string | null {
+  return typeof value === 'string' && REQUEST_ID.test(value) ? value : null;
+}
+
 /** Channels that carry no payload must receive nothing. */
 export function isEmptyPayload(args: readonly unknown[]): boolean {
   return args.length === 0 || (args.length === 1 && args[0] === undefined);

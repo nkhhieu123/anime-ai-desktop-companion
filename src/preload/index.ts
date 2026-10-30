@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { IPC, type CompanionApi, type ScreenPoint } from '@shared/ipc';
+import type { ChatEvent } from '@shared/ai';
+import { CHAT_EVENT_CHANNEL, IPC, type CompanionApi, type ScreenPoint } from '@shared/ipc';
 
 /**
  * The renderer's only bridge to the main process. Each method maps to one
@@ -18,7 +19,21 @@ const api: CompanionApi = {
   },
   chat: {
     send: (request) => ipcRenderer.invoke(IPC.chatSend, { text: String(request?.text ?? '') }),
+    cancel: (requestId) => ipcRenderer.send(IPC.chatCancel, String(requestId)),
+    getHistory: () => ipcRenderer.invoke(IPC.chatGetHistory),
+    clear: () => ipcRenderer.invoke(IPC.chatClear),
+    onEvent: (listener) => {
+      // The Electron event object stays here; the page only ever sees the payload.
+      const wrapped = (_event: unknown, payload: ChatEvent) => listener(payload);
+      ipcRenderer.on(CHAT_EVENT_CHANNEL, wrapped);
+      return () => ipcRenderer.removeListener(CHAT_EVENT_CHANNEL, wrapped);
+    },
     close: () => ipcRenderer.send(IPC.chatClose),
+  },
+  ai: {
+    getSettings: () => ipcRenderer.invoke(IPC.aiGetSettings),
+    updateSettings: (patch) => ipcRenderer.invoke(IPC.aiUpdateSettings, patch),
+    checkConnection: () => ipcRenderer.invoke(IPC.aiCheckConnection),
   },
   app: {
     getInfo: () => ipcRenderer.invoke(IPC.appGetInfo),

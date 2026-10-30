@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CHAT_MESSAGE_MAX_LENGTH } from '@shared/ipc';
-import { isEmptyPayload, parseChatRequest, parseScreenPoint } from '@shared/validation';
+import { isEmptyPayload, parseChatRequest, parseRequestId, parseScreenPoint } from '@shared/validation';
 
 describe('parseScreenPoint', () => {
   it('accepts finite coordinates and rounds them', () => {
@@ -51,6 +51,17 @@ describe('parseChatRequest', () => {
     { text: 'a'.repeat(CHAT_MESSAGE_MAX_LENGTH + 1) },
   ])('rejects %j', (value) => {
     expect(parseChatRequest(value)).toBeNull();
+  });
+});
+
+describe('parseRequestId', () => {
+  it('accepts a UUID', () => {
+    const id = '123e4567-e89b-12d3-a456-426614174000';
+    expect(parseRequestId(id)).toBe(id);
+  });
+
+  it.each(['', 'x', 42, null, {}, '../../etc/passwd', 'a'.repeat(36)])('rejects %j', (value) => {
+    expect(parseRequestId(value)).toBeNull();
   });
 });
 

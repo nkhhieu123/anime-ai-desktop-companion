@@ -62,7 +62,12 @@ export class IpcRouter {
     ipcMain.handle(channel, async (event, ...args: unknown[]) => {
       const role = this.check(channel, event);
       if (!role) return rejected;
-      return handler(role, args);
+      try {
+        return await handler(role, args);
+      } catch (error) {
+        log.error('ipc handler failed', { channel, error: String(error) });
+        return rejected;
+      }
     });
   }
 

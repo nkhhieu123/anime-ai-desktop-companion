@@ -1,11 +1,16 @@
 import { app } from 'electron';
-import { IPC, type AppInfo, type ChatReply } from '@shared/ipc';
-import { isEmptyPayload, parseChatRequest, parseScreenPoint } from '@shared/validation';
+import type { AiSettings, ConnectionReport, ConversationMessage } from '@shared/ai';
+import { IPC, type AiSettingsUpdate, type AppInfo, type ChatReply } from '@shared/ipc';
+import { isEmptyPayload, parseChatRequest, parseRequestId, parseScreenPoint } from '@shared/validation';
+import type { AiService } from '../ai/ai-service';
 import type { WindowManager } from '../windows/window-manager';
 import type { IpcRouter } from './router';
-import { log } from '../log';
 
-export function registerIpcHandlers(router: IpcRouter, windows: WindowManager): void {
+export function registerIpcHandlers(
+  router: IpcRouter,
+  windows: WindowManager,
+  ai: AiService,
+): void {
   router.on(IPC.avatarDragStart, (_role, args) => {
     const point = parseScreenPoint(args[0]);
     if (point && args.length === 1) windows.dragStart(point);
@@ -37,11 +42,50 @@ export function registerIpcHandlers(router: IpcRouter, windows: WindowManager): 
     (_role, args) => {
       const request = args.length === 1 ? parseChatRequest(args[0]) : null;
       if (!request) return { ok: false, error: 'invalid-input' };
-      log.info('chat message received', { length: request.text.length });
-      // Stage 3 wires this to the local LLM. Until then, report the real status.
-      return { ok: true, status: 'ai-not-connected', text: '' };
+      // Message text is deliberately never logged.
+      return ai.send(request.text);
     },
     { ok: false, error: 'internal' },
+  );
+
+  router.on(IPC.chatCancel, (_role, args) => {
+    const requestId = args.length === 1 ? parseRequestId(args[0]) : null;
+    if (requestId) ai.cancel(requestId);
+  });
+
+  router.handle<ConversationMessage[]>(
+    IPC.chatGetHistory,
+    (_role, args) => (isEmptyPayload(args) ? ai.getHistory() : []),
+    [],
+  );
+
+  router.handle<void>(
+    IPC.chatClear,
+    async (_role, args) => {
+      if (isEmptyPayload(args)) await ai.clearHistory();
+    },
+    undefined,
+  );
+
+  router.handle<AiSettings | null>(
+    IPC.aiGetSettings,
+    (_role, args) => (isEmptyPayload(args) ? ai.getSettings() : null),
+    null,
+  );
+
+  router.handle<AiSettingsUpdate>(
+    IPC.aiUpdateSettings,
+    async (_role, args) => {
+      const result = await ai.updateSettings(args.length === 1 ? args[0] : null);
+      return result.ok ? { ok: true, settings: ai.getSettings() } : result;
+    },
+    { ok: false, field: '*' },
+  );
+
+  router.handle<ConnectionReport>(
+    IPC.aiCheckConnection,
+    (_role, args) => (isEmptyPayload(args) ? ai.checkConnection() : { status: 'bad-response' }),
+    { status: 'bad-response' },
   );
 
   router.handle<AppInfo | null>(
