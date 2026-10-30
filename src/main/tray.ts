@@ -8,7 +8,7 @@ export function createTray(windows: WindowManager): Tray {
   const size = 32;
   const icon = nativeImage.createFromBitmap(createTrayBitmap(size), { width: size, height: size });
   const tray = new Tray(icon.resize({ width: 16, height: 16 }));
-  // Stage 2 switches this to the UI-language setting.
+  // Stage 3 switches this to the UI-language setting.
   const t = createTranslator(resolveUiLocale(app.getLocale()));
 
   const rebuild = (): void => {

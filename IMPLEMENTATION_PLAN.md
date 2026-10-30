@@ -32,10 +32,10 @@ Mỗi chặng có: mục tiêu, phạm vi file, tiêu chí chấp nhận, rủi 
 - [x] Permission request mặc định bị từ chối (smoke test: notification, microphone). Điều hướng ra ngoài app bị chặn (smoke test).
 - [x] Single-instance lock (smoke test: lần chạy thứ hai tự thoát với mã 0 và hiện lại avatar đang ẩn; smoke test báo lỗi nếu đã có bản khác đang chạy).
 - [x] Unit test cho validation, sender check, trusted origin, CSP, kéo thả, i18n.
-- [x] Smoke test Electron thật: `npm run test:smoke` → 32/32 PASS.
+- [x] Smoke test Electron thật: `npm run test:smoke` → PASS (xem số mới nhất ở chặng 2).
 - [x] README, `docs/ARCHITECTURE.md`, `docs/SECURITY.md`.
 
-**Rủi ro:** cửa sổ trong suốt trên một số GPU/driver Windows có thể hiện nền đen → tuỳ chọn tắt hardware acceleration sẽ thêm ở chặng 2. Chưa build/kiểm chứng installer ở chặng này.
+**Rủi ro:** cửa sổ trong suốt trên một số GPU/driver Windows có thể hiện nền đen → tuỳ chọn tắt hardware acceleration sẽ thêm ở chặng 3. Chưa build/kiểm chứng installer ở chặng này.
 
 **Ngoài kế hoạch ban đầu, đã làm sớm:** i18n giao diện vi-VN/en-US tối thiểu (theo locale hệ điều hành, fallback en-US) để không có chuỗi giao diện viết cứng trong component.
 
@@ -43,14 +43,19 @@ Mỗi chặng có: mục tiêu, phạm vi file, tiêu chí chấp nhận, rủi 
 
 ## Chặng 2 — AI Core chạy cục bộ
 
-- [ ] Interface `LLMProvider` (health check, list models, stream chat, cancel).
-- [ ] Adapter Ollama: chỉ endpoint loopback, cấu hình model, timeout, streaming, cancellation.
-- [ ] Giới hạn độ dài đầu vào và lịch sử hội thoại.
-- [ ] Quản lý hội thoại; chỉ lưu cục bộ khi người dùng bật, tắt thì xoá dữ liệu đã lưu.
-- [ ] System prompt tách khỏi nội dung người dùng, theo ngôn ngữ; output của model chỉ là văn bản hiển thị.
-- [ ] Màn hình chọn model, kiểm tra kết nối, thông báo model chưa tải và lỗi Ollama.
-- [ ] Unit/integration test với mock: provider, lỗi kết nối, timeout, câu trả lời rỗng, streaming.
-- [ ] Test cần Ollama thật được tách riêng và ghi rõ.
+**Trạng thái: CHƯA HOÀN THÀNH.** Code và kiểm thử với máy chủ giả lập đã xong; còn thiếu bằng chứng với Ollama thật.
+
+- [x] Interface `LLMProvider` (version, list models, stream chat, cancel qua AbortSignal).
+- [~] Adapter Ollama: chỉ endpoint loopback, cấu hình model, timeout, streaming, cancellation. Đã kiểm thử với máy chủ giả lập; **chưa chạy với Ollama thật**.
+- [x] Giới hạn độ dài đầu vào và lịch sử hội thoại (số tin và số ký tự).
+- [x] Quản lý hội thoại; chỉ lưu cục bộ khi người dùng bật, tắt thì xoá dữ liệu đã lưu. Lưu bằng file JSON; SQLite ở chặng 3.
+- [x] System prompt tách khỏi nội dung người dùng, theo ngôn ngữ; output của model chỉ là văn bản hiển thị.
+- [~] Màn hình chọn model, kiểm tra kết nối, thông báo model chưa tải và lỗi Ollama. Smoke test đi qua giao diện thật với máy chủ giả lập; chưa thử với Ollama thật và chưa có người dùng thao tác trên màn hình.
+- [x] Unit/integration test với mock: provider, lỗi kết nối, timeout, câu trả lời rỗng, streaming, cancel.
+- [x] Test cần Ollama thật được tách riêng và ghi rõ: `tests/ollama.live.test.ts`, `npm run test:live`.
+- [ ] **Chạy `npm run test:live` với Ollama thật và một model thật.** Blocker: máy phát triển chưa cài Ollama. 5 test này đang bị bỏ qua, chưa từng chạy.
+
+**Rủi ro:** máy chủ giả lập được viết theo tài liệu API của Ollama. Nếu Ollama thật khác tài liệu (ví dụ thông báo lỗi 404, dữ liệu model có `thinking`), chỉ test live mới phát hiện được.
 
 ## Chặng 3 — Settings, database, logging, language manager
 
@@ -97,6 +102,6 @@ Mỗi chặng có: mục tiêu, phạm vi file, tiêu chí chấp nhận, rủi 
 
 - [ ] electron-builder NSIS installer cho Windows x64; kiểm tra cài/gỡ trên Windows thật.
 - [ ] CI GitHub Actions (windows-latest): lint, typecheck, test, build.
-- [ ] Smoke test khởi động app (Playwright Electron hoặc tương đương).
+- [ ] Smoke test chạy trên CI; loại `smoke-test.ts` và `testing/mock-ollama.ts` khỏi bản đóng gói.
 - [ ] Tài liệu: cài model, thêm ngôn ngữ/voice, startup, troubleshooting, yêu cầu phần cứng.
 - [ ] Checklist kiểm thử thủ công + báo cáo tính năng (implemented / tested / partial / planned).

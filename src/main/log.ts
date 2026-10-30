@@ -1,5 +1,5 @@
 /**
- * Minimal structured logger. Stage 2 replaces the sink with a rotating file
+ * Minimal structured logger. Stage 3 replaces the sink with a rotating file
  * logger with redaction; call sites stay the same.
  */
 type Level = 'debug' | 'info' | 'warn' | 'error';
